@@ -1,0 +1,102 @@
+/*
+ * main.c
+ *
+ * Created: 2/21/2023 11:12:41 AM
+ *  Author: Tavjot
+ */ 
+
+/*
+#include <avr/io.h>
+#include <util/delay.h>
+int main(void)
+{
+	
+	//DDRD = 0b01100000; //Forward
+	//DDRD = 0b00010100;	//Backward
+	
+	DDRD |= (1 << PD5) | (1 << PD6) ; // set PD5 and PD6 as output pins
+	TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+	TCCR0B |= (1 << CS02); // set prescaler to 256
+	// OCR0A = 255; // set duty cycle for PD6 // AT for constant Speed M2 & M1
+	// OCR0B = 120; // set duty cycle for PD5 // AT for Constant Speed M3 & M4
+
+	
+	while (1)
+	{
+		// change duty cycle to reduce the speed of the motor
+		for (int i = 255; i >= 0; i = i-30)
+		{
+			OCR0A = i; // set duty cycle for PD6
+			OCR0B = i; // Set duty cycle for PD5
+			_delay_ms(12); // wait for 5 ms
+		}
+		for (int j = 0; j <= 255; j=j+30)
+		{
+			OCR0A =j; // set duty cycle for PD6
+			OCR0B =j; // set duty cycle for PD5
+			_delay_ms(10); // wait for 5 ms
+		}
+	}	
+	
+	return 0;
+}*/
+
+#include <avr/io.h>
+#include <util/delay.h>
+
+#define LEFT_SENSOR_PIN  PB3  // Pin connected to left sensor
+#define CENTER_SENSOR_PIN PD7  // Pin connected to center sensor
+#define RIGHT_SENSOR_PIN  PD0  // Pin connected to right sensor
+#define MOTOR_PIN         (1 << PD6) | (1 << PD5)  // Pin connected to motor
+
+#define THRESHOLD 500  // Sensor value threshold for black/white detection
+
+uint16_t adc_read(uint8_t pin);
+
+int main(void)
+{
+	// Set the pins as input or output
+	DDRB &= ~(1 << LEFT_SENSOR_PIN);
+	DDRD &= ~(1 << CENTER_SENSOR_PIN);
+	DDRB &= ~(1 << RIGHT_SENSOR_PIN);
+	DDRD |= MOTOR_PIN;
+
+	// Set the motor to move forward
+	PORTD |= MOTOR_PIN;
+
+	while (1) {
+		// Read the sensor values
+		uint16_t left_value   = adc_read(LEFT_SENSOR_PIN);
+		uint16_t center_value = adc_read(CENTER_SENSOR_PIN);
+		uint16_t right_value  = adc_read(RIGHT_SENSOR_PIN);
+
+		// Determine the direction to turn based on the sensor readings
+		if (left_value < THRESHOLD && center_value > THRESHOLD && right_value > THRESHOLD) {
+			// Turn left
+			PORTD &= ~MOTOR_PIN;
+			_delay_ms(100);
+			PORTD |= MOTOR_PIN;
+			_delay_ms(100);
+			} else if (left_value > THRESHOLD && center_value > THRESHOLD && right_value < THRESHOLD) {
+			// Turn right
+			PORTD &= ~MOTOR_PIN;
+			_delay_ms(100);
+			PORTD |= MOTOR_PIN;
+			_delay_ms(100);
+			} else {
+			// Move forward
+			PORTD |= MOTOR_PIN;
+		}
+	}
+
+	return 0;
+}
+
+// Function to read the ADC value of a sensor pin
+uint16_t adc_read(uint8_t pin)
+{
+	ADMUX = (1 << REFS0) | (pin & 0x07);  // Set the ADC reference voltage and channel
+	ADCSRA |= (1 << ADSC);                // Start the ADC conversion
+	while (ADCSRA & (1 << ADSC));         // Wait for the conversion to complete
+	return ADC;                           // Return the ADC value
+}
