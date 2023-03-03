@@ -1,4 +1,6 @@
-// PWM testing backward and forward
+
+
+// PWM testing backward and forward grp motors
 //Forward (Max, Min) Range = (255,0)
 //Backward (Max, Min) Range = (0,255)
 /*#include <avr/io.h>
@@ -20,6 +22,10 @@ OCR0B = dutyCycle_Grp2; // set duty cycle for PD5 // AT for Constant Speed M2 & 
 }
 */
 
+
+
+
+// Line Following Algorithm
 
 #include <avr/io.h>
 #include <util/delay.h>
