@@ -1,6 +1,6 @@
 
 
-// PWM testing backward and forward grp motors
+// PWM testing for backward & forward grp motors
 //Forward (Max, Min) Range = (255,0)
 //Backward (Max, Min) Range = (0,255)
 /*#include <avr/io.h>
