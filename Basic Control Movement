@@ -1,7 +1,7 @@
 /*
  * main.c
  *
- * Created: 2/21/2023 11:12:41 AM
+ * Created: 2/16/2023 11:12:41 AM
  *  Author: Tavjot
  */ 
 
@@ -10,17 +10,36 @@
 #include <util/delay.h>
 int main(void)
 {
+	// Motors are connected to Pin 5 & 6 in Port D which are PWM pins
+
+	// Motors in Clockwise Direction - Forward Direction
+	//DDRD = 0b00100000; 					// Forward Left motors , Pin 5 in Port D set as Output
+	//DDRD = 0b01000000; 					// Forward Right motors, Pin 6 in Port D set as Output
 	
-	//DDRD = 0b01100000; //Forward
-	//DDRD = 0b00010100;	//Backward
+	// Both motors in clockwise with equal speed. 
+	//DDRD = 0b01100000; 					// Both motors forward, Pin5 & Pin6 in Port D set as Output 
 	
+	// Motors in Anti-Clockwise - Backward Direction
+	//DDRD = 0b00000100; 					// Backward Left motors , Pin 2 in Port D set as Output
+	//DDRD = 0b00010000; 					// Backward Left motors , Pin 4 in Port D set as Output
+
+	// Both Motors in backward direction with constant speed
+	//DDRD = 0b00010100; 					// Both pins as Output in backward direction
+	
+	
+	// PWM for forward direction to change the speed of motors by changing the duty cycle.
 	DDRD |= (1 << PD5) | (1 << PD6) ; // set PD5 and PD6 as output pins
-	TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
-	TCCR0B |= (1 << CS02); // set prescaler to 256
-	// OCR0A = 255; // set duty cycle for PD6 // AT for constant Speed M2 & M1
-	// OCR0B = 120; // set duty cycle for PD5 // AT for Constant Speed M3 & M4
+	TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); 		// set fast PWM mode with non-inverting output for OC0A and OC0B
+	TCCR0B |= (1 << CS02); 								// set prescaler to 256
+	
+	// Handling Left group motors speed
+	// OCR0A = 255; 								// set duty cycle for PD6 // AT for constant Speed M2 & M1
+	// Handling Left group motors speed
+	// OCR0B = 120; 								// set duty cycle for PD5 // AT for Constant Speed M3 & M4
 
 	
+	
+	// Changing speed gradually for different time period. Increasing speed after an interval untill maximum speed reached and vice versa.
 	while (1)
 	{
 		// change duty cycle to reduce the speed of the motor
@@ -44,12 +63,12 @@ int main(void)
 #include <avr/io.h>
 #include <util/delay.h>
 
-#define LEFT_SENSOR_PIN  PB3  // Pin connected to left sensor
-#define CENTER_SENSOR_PIN PD7  // Pin connected to center sensor
-#define RIGHT_SENSOR_PIN  PD0  // Pin connected to right sensor
-#define MOTOR_PIN         (1 << PD6) | (1 << PD5)  // Pin connected to motor
+#define LEFT_SENSOR_PIN  PB3  					// Pin connected to left sensor
+#define CENTER_SENSOR_PIN PD7 					// Pin connected to center sensor
+#define RIGHT_SENSOR_PIN  PD0  					// Pin connected to right sensor
+#define MOTOR_PIN (1 << PD6) | (1 << PD5) 			// Pin connected to motor
 
-#define THRESHOLD 500  // Sensor value threshold for black/white detection
+#define THRESHOLD 500  						// Sensor value threshold for black/white detection
 
 uint16_t adc_read(uint8_t pin);
 
