@@ -4,23 +4,23 @@
 
 int main(void)
 {
-    DDRB |= (1 << PB4); // Set PB1 as output
-    DDRB &= ~(1 << PB5); // Set PB5 as input
-    PORTB &= ~(1 << PB4); // Set PB1 low initially
+    DDRB |= (1 << PB4);                                                         // Set PB1 as output, Trigger Pin
+    DDRB &= ~(1 << PB5);                                                        // Set PB5 as input, Echo Pin
+    PORTB &= ~(1 << PB4);                                                       // Set PB1 low initially
 
     while (1)
     {
         // Send trigger pulse
-        PORTB |= (1 << PB4); // Set PB5 high
-        _delay_us(10); // Wait 10us
-        PORTB &= ~(1 << PB4); // Set PB5 low
+        PORTB |= (1 << PB4);                                                    // Set PB5 high
+        _delay_us(10);                                                          // Wait 10us
+        PORTB &= ~(1 << PB4);                                                   // Set PB5 low
 
         // Measure echo pulse duration
         uint16_t pulse_width = 0;
-        while ((PINB & (1 << PB5)) == 0); // Wait for echo pulse start
-        while ((PINB & (1 << PB5)) != 0) // Measure pulse width
+        while ((PINB & (1 << PB5)) == 0);                                       // Wait for echo pulse to start
+        while ((PINB & (1 << PB5)) != 0)                                        // Measure pulse width
         {
-            pulse_width++;
+            pulse_width++;                                                      // Incrementing pulse width count
             _delay_us(1);
         }
 
@@ -30,13 +30,13 @@ int main(void)
         // Turn on LED if object detected within 10 cm
         if (distance < 10)
         {
-            PORTB |= (1 << PB1); // Set PB1 high to turn on LED
+            PORTB |= (1 << PB1);                                                // Set PB1 high to turn on LED
         }
         else
         {
-            PORTB &= ~(1 << PB1); // Set PB1 low to turn off LED
+            PORTB &= ~(1 << PB1);                                               // Set PB1 low to turn off LED
         }
 
-        _delay_ms(100); // Wait for 100ms before next measurement
+        _delay_ms(100);                                                         // Wait for 100ms before next measurement
     }
 }
