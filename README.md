@@ -2,6 +2,9 @@
 
 Autonomous smart vehicle with line following and collision avoidance using Arduino Uno(Atmega 328P) microprocessor.
 
+![image](https://user-images.githubusercontent.com/112978666/222994435-be9e6bb4-902d-4757-bd06-7be5e22eb4b5.png)
+
+
 Line tracking system is initialized using IR sensor module.
 
 Collision Avoidance system implementation using ultrasonic sensor.
