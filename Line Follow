@@ -55,31 +55,31 @@ int main(void)
 			OCR0A = 105;								// Duty cycle M3 & M4 
 			OCR0B = 105;								// Duty cycle M2 & M1
 		}
-		else if ((!left) && (center) && (right)) // Slight Right Turn
+		else if ((!left) && (center) && (right)) // Slight Right Turn			// When robot is going slight left off track, Left == 0
 		{
-			PORTD = 0b00110000; // set right side forward
-			OCR0A = 180;		 //Backward right side
-			OCR0B = 115;		//Forward left side
+			PORTD = 0b00110000; 							// Left motors in forward direction, Right motors in backward direction
+			OCR0A = 180;								// Backward right side duty cycle
+			OCR0B = 115;								// Forward left side duty cycle , less difference between both grp tyres
 		}
-		else if ((!left) && (!center) && (right))	// Sharp Right Turn
+		else if ((!left) && (!center) && (right))	// Sharp Right Turn             // When robot is going sharp left off track, Left == 0 and center == 0
 		{
-			PORTD = 0b00110000; // set right side forward
-			OCR0A = 160;		//Backward right side
-			OCR0B = 135;		//Forward left side
+			PORTD = 0b00110000; // set right side forward				// Left motors in forward direction, Right motors in backward direction
+			OCR0A = 160;		//Backward right side				// Backward right side duty cycle
+			OCR0B = 135;		//Forward left side				// Forward left side duty cycle, large difference between both grp tyres
 		}
-		else if ((left) && (center) && (!right)) // Slight left Turn
+		else if ((left) && (center) && (!right)) // Slight left Turn			// When robot is going slight right off track, Right == 0
 		{
-			PORTD = 0b01000100; // set right side forward
-			OCR0A = 115;		//Forward right side
-			OCR0B = 180;	   //Backward left side
+			PORTD = 0b01000100; 							// Right motors in forward direction, Left motors in backward direction
+			OCR0A = 115;								// Forward right side duty cycle
+			OCR0B = 180;	   							// Backward left side duty cycle
 		}
-		else if ((left) && (!center) && (!right))	// Sharp Right Turn
+		else if ((left) && (!center) && (!right))	// Sharp Right Turn		// When robot is going sharp right off track, Right == 0 and center == 0
 		{
-			PORTD = 0b01000100; // set right side forward
-			OCR0A = 135;		//Forward right side
-			OCR0B = 160;	   //Backward left side
+			PORTD = 0b01000100; // set right side forward				// Right motors in forward direction, Left motors in backward direction
+			OCR0A = 135;								// Forward right side duty cycle
+			OCR0B = 160;	   							// Backward left side duty cycle
 		}
-		else if((!left) && (!center) && (!right))
+		else if((!left) && (!center) && (!right))					// When on white surface stop completely
 		{
 			// Lost the line - stop
 			PORTD = 0b00000000; // set both motors to stop
