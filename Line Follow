@@ -7,18 +7,22 @@
 #include <util/delay.h>
 
 int main(void){
-	DDRD |= 0b01110100;
-	PORTD ^= 0b01000100;
-	speedControl(0,180);
+	DDRD |= 0b01110100;			// Pin 2, 4 , 5 and 6 as Output pins for motors 1,2,3,4. // Both forward and backward pins initialized to ouptut
+	PORTD ^= 0b01000100;			// Running Pin 6 (Right Motors) in forward direction and Pin 2(Left motors) in backward direction
+	speedControl(120,180);			// Applying PWM on both the motors. Right motors at high speed and Left motors at low speed
 
 
 } 
 void speedControl(int dutycycle_Grp1, int dutyCycle_Grp2){
 
-TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
-TCCR0B |= (1 << CS02); // set prescaler to 256
-OCR0A = dutycycle_Grp1; // set duty cycle for PD6 // AT for constant Speed M3 & M4
-OCR0B = dutyCycle_Grp2; // set duty cycle for PD5 // AT for Constant Speed M2 & M1
+TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); 		// set fast PWM mode with non-inverting output for OC0A and OC0B
+TCCR0B |= (1 << CS02); 								// set prescaler to 256
+
+// Duty cycle for right motors
+OCR0A = dutycycle_Grp1; 							// set duty cycle for PD6 // AT for constant Speed M3 & M4
+
+// Duty cycle for left motors
+OCR0B = dutyCycle_Grp2; 							// set duty cycle for PD5 // AT for Constant Speed M2 & M1
 }
 */
 
@@ -32,24 +36,24 @@ OCR0B = dutyCycle_Grp2; // set duty cycle for PD5 // AT for Constant Speed M2 & 
 
 int main(void)
 {
-	DDRD = 0b01110100; //Forward
-	DDRD |= (1 << PD5) | (1 << PD6) ; // set PD5 and PD6 as output pins
-	TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
-	TCCR0B |= (1 << CS02); // set prescaler to 256
+	DDRD = 0b01110100; 									// setting all motors pin as Output -  Both Forward and Backwards pin
+	// DDRD |= (1 << PD5) | (1 << PD6) ; // set PD5 and PD6 as output pins
+	TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); 			// set fast PWM mode with non-inverting output for OC0A and OC0B
+	TCCR0B |= (1 << CS02);									// set prescaler to 256
 
 	while (1)
 	{
-		// Read sensor values
-		int left = (PINB & (1 << PB3)) ? 1 : 0;
-		int center = (PIND & (1 << PD7)) ? 1 : 0;
-		int right = (PINB & (1 << PB0)) ? 1 : 0 ; // Determine the line position
+		// Read sensor values - Black = 1 , White = 0
+		int left = (PINB & (1 << PB3)) ? 1 : 0;						// Input sensed value from Left sensor at Pin 11 in Port B		
+		int center = (PIND & (1 << PD7)) ? 1 : 0;					// Input sensed value from center sensor at Pin 7 in Port D
+		int right = (PINB & (1 << PB0)) ? 1 : 0 ; 					// Input sensed value from right sensor at Pin 8 in Port B
 
-		if ((left) && (center) && (right))
+		if ((left) && (center) && (right))						// When robot is on the track line, All leds black
 		{
 			// On the line - go straight
-			PORTD = 0b01100000; // set right side forward
-			OCR0A = 105;
-			OCR0B = 105;
+			PORTD = 0b01100000; 							// Both the motors in forward direction
+			OCR0A = 105;								// Duty cycle M3 & M4 
+			OCR0B = 105;								// Duty cycle M2 & M1
 		}
 		else if ((!left) && (center) && (right)) // Slight Right Turn
 		{
