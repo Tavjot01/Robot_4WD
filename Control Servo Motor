@@ -6,30 +6,30 @@
 int pos;
 int main(void){
 	
-	DDRC |= (1 << PORTC3);
+	DDRC |= (1 << PORTC3);							// Setting Pin A3 in Port C as Output for Servo Motor
 	while(1){
-		for(int pos = 0; pos <= 180; pos+=1){
-			procedure(pos);
-			_delay_ms(150);
+		for(int pos = 0; pos <= 180; pos+=1){				// Turning servo motor in clockwise direction from 0 to 180 degrees
+			procedure(pos);						// Switching the servo ON to move to the passed degree/position
+			_delay_ms(150);						// Creating delay of 150 ms to control the speed of the servo rotation
 		}
 	
-		for(int pos = 180; pos >= 0; pos -=1 ){
-			procedure(pos);
-			_delay_ms(150);
+		for(int pos = 180; pos >= 0; pos -=1 ){				// Turning servo motor in anti-clockwise direction from 180 to 0 degrees.
+			procedure(pos);						// Switching the servo ON to move to the passed degree/position
+			_delay_ms(150);						// Creating delay of 150 ms to control the speed on the servo rotation
 		}
 }
 }
 
 
 void procedure(int angleDeviation) {
-	long pulseWidth = (angleDeviation * 11) + 500;			// Calculation for value of pulse width
-	PORTC = 0b00001000;
-	for(int i = 0; i < pulseWidth; i++){
-		_delay_us(1);
+	long pulseWidth = (angleDeviation * 11) + 500;				// Calculation for value of pulse width
+	PORTC = 0b00001000;							// Output pin at high level
+	for(int i = 0; i < pulseWidth; i++){					// Creating delay for the number of pulse width
+		_delay_us(1);							// To make the servo move for the duration of pulse with : puslse with = duration of pin A3 high
 	}
 	//_delay_us(pulseWidth)
-	PORTC = 0b00000000;
-	for(int j = 0; j < (20-pulseWidth/1000); j++){
+	PORTC = 0b00000000;							// Output pin at low level
+	for(int j = 0; j < (20-pulseWidth/1000); j++){				// Duration for which the pin is set as low :  #remaining time
 		_delay_ms(1);
 	}
 	//_delay_ms((20-pulseWidth/1000));
