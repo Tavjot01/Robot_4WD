@@ -1,0 +1,197 @@
+#define F_CPU 16000000UL
+#define BAUD 9600
+#include <avr/io.h>
+#include <util/setbaud.h>
+#include <util/delay.h>
+#include <avr/interrupt.h>
+char input_Command;
+uint16_t distance, A1, A2, length();
+uint16_t flag;
+int timer = 0;
+void Avoid(void);
+void procedure(int angleDeviation);
+
+int main(void)
+{
+    TCCR1B = (1 << CS12);// Set Pre scalar as 256
+    UBRR0H = UBRRH_VALUE;
+    UBRR0L = UBRRL_VALUE;
+    UCSR0B |= (1<<RXEN0) | (1 << RXCIE0);// Enable transmission
+    UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);// Set frame to 8 bits
+    DDRD = 0b01110100;
+    DDRB =0b000010010;
+    DDRC = (1 << PC3);
+    procedure(90);
+    _delay_ms(600);
+    TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+    TCCR0B |= (1 << CS02); // set prescaler to 256
+    sei();
+    while (1)
+    {
+        if (input_Command == 'F'){
+            //PORTB = 0b00000010; // Turn on LED
+            Line_follow();
+        }
+        else if(input_Command == 'B'){
+            //PORTB = 0b00000000; // Turn off LED
+            PORTD = 0b00000000;
+            OCR0A = 0;
+            OCR0B = 0;
+        }
+        else if(input_command == 'L' )
+        PORTD = 0b00000000;
+        OCR0A = 0;
+        OCR0B = 0;
+        _delay_ms(5000);
+        Line_Follow();
+    }
+    }
+ISR(USART_RX_vect) {
+    input_Command = UDR0;
+    }
+void Avoid(void){
+            PORTD = 0b00000000;     // To check in front stop the motors and check left and right
+            OCR0A = 0;
+            OCR0B = 0;
+            //_delay_ms(30);
+            procedure(160);         // Move the servo to 160 degree to check distance in left
+            _delay_ms(20);
+            A1 = length();          // Clear distance in left
+            //_delay_ms(20);
+            procedure(20);          // Move the servo to right to 20 degree 
+            _delay_ms(20);
+            A2 = distance;          // Distance in the right
+            //_delay_ms(20);
+            procedure(90);
+            if (A1 > A2)      // if left side clear
+            {
+                //PORTB = 0b00000010;       // Move left
+                PORTD = 0b01000100;
+                OCR0A = 50;
+                OCR0B = 100;
+                procedure(90);
+                _delay_ms(200);
+                }else{  //  move right
+                PORTD = 0b00110000;
+                OCR0A = 100;
+                OCR0B = 50;
+                procedure(90);
+                _delay_ms(200);
+            }
+            } uint16_t length(){
+    // Send trigger pulse
+    PORTB |= (1 << PB4);                          // Set PB4 high
+    _delay_us(10);                                // Wait 10us
+    PORTB &= ~(1 << PB4);                         // Set PB5 low
+    // Measure echo pulse duration
+    uint16_t pulse_width = 0;
+    while ((PINB & (1 << PB5)) == 0);             // Wait for echo pulse start
+    while ((PINB & (1 << PB5)) != 0)              // Measure pulse width, reading echo pulse 
+    {
+        pulse_width++;
+        _delay_us(1);
+    }
+    // Calculate distance in cm
+    uint16_t distance = (pulse_width / 2)/29.1;       
+    return distance;
+    //_delay_ms(100); // Wait for 100ms before next measurement
+    }
+void procedure(int angleDeviation) {
+    for (int i = 0;i < 90;i++){
+        long pulseWidth = (angleDeviation * 11) + 500; // Calculation for value of pulse width
+        PORTC = 0b00001000;
+        for(int i = 0; i < pulseWidth; i++){
+        }
+        //_delay_us(pulseWidth)
+        PORTC = 0b00000000;
+        for(int j = 0; j < (20-pulseWidth/1000); j++){
+        }
+    }//_delay_ms((20-pulseWidth/1000));
+} 
+
+void Line_follow(){
+		flag = 1;
+    distance = length();
+		while(flag){
+			// Reading Sensor Values for IR sensor
+			int left = (PINB & (1 << PB3)) ? 1 : 0;			
+			int center = (PIND & (1 << PD7)) ? 1 : 0;
+			int right = (PINB & (1 << PB0)) ? 1 : 0 ;               // Determine the line position if ((left) && (center) && (right))
+			// Reading snesor values for Extra IR Sensors
+			int extra_left = (PINC & (1 << PC0)) ? 1 : 0;
+			//int extra_left = (PINB & (1<<PB2)) ? 1:0;
+			if((extra_left) && (left) && (center) && (right)){
+        if ((distance < 15 ) && (distance != 0)){             // Checking for obstacle in front 
+        Avoid();
+        }else{                                                // If clear go straight
+				// On the line - go straight
+				PORTD = 0b01100000;                                   // set right side forward
+				matrix_display(front);
+				OCR0A = 63;                                            // PWM Speed
+				OCR0B = 63;	                                            // PWM Speed
+			}}
+		else if ((extra_left) && (left) && (center) && (!right)) // Slight left Turn
+		{
+			PORTD = 0b01000100; // set right side forward
+			matrix_display(left);
+			OCR0A = 185;		// PWM Speed Backward tyres
+			OCR0B = 40;			// PWM Speed Forward tyres
+		}
+			else if ((extra_left) && (left) && (!center) && (!right)) // Sharp left Turn
+			{
+				PORTD = 0b01000100; // set right side forward
+				OCR0A = 225;
+				OCR0B = 53;
+				matrix_display(left);
+			}
+			//else if ((!extra_left) && (!left) && (!center) && (right))// Sharp Left Turn
+			//{
+				//PORTD = 0b00110000; // set right side forward
+				//matrix_display(left);
+				//OCR0A = 40;
+				//OCR0B = 235;
+			//}
+			else if ((!extra_left) && (left) && (center) && (right) ) // Slight Right Turn
+			{
+				PORTD = 0b00110000; // set right side forward
+				OCR0A = 40;
+				OCR0B = 185;
+				matrix_display(right);
+
+			}
+			else if ((!extra_left) && (!left) && (center) && (right)) // Slight Right Turn
+			{
+				PORTD = 0b00110000; // set right side forward
+				OCR0A = 50;
+				OCR0B = 220;
+				matrix_display(right);
+
+			}
+			else if ((!extra_left) && (!left) && (!center) && (right) )// Sharp Right Turn
+			{
+				PORTD = 0b00110000; // set right side forward
+				OCR0A = 45;
+				OCR0B = 235;
+				matrix_display(right);
+
+			}
+			else if((!extra_left) && (!left) && (!center) && (!right))
+			{
+				if (counter == -1){
+					PORTD = 0b01100000;
+					counter++;
+				}
+				else if (counter >= 0){
+				// Lost the line - stop
+				PORTD = 0b00010100;// set both motors to stop
+				OCR0A = 20;
+				OCR0B = 32;
+				matrix_display(STOP);}
+
+			}
+			if(input_Command == 'B' || input_Command == 'L'){
+				flag = 0;
+				break;
+			}
+		}
+	}
