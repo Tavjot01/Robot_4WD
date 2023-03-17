@@ -1,0 +1,1745 @@
+/*
+ * main.c
+ *
+ * Created: 2/21/2023 11:12:41 AM
+ *  Author: Tavjot
+ */ 
+
+//#define F_CPU 16000000UL // Set clock speed
+//#include <avr/io.h>	
+//#include <util/delay.h>
+/*
+#include <avr/io.h>
+#include <util/delay.h>
+int main(void)
+{
+	
+	//DDRD = 0b01100000; //Forward
+	//DDRD = 0b00010100;	//Backward
+	
+	DDRD |= (1 << PD5) | (1 << PD6) ; // set PD5 and PD6 as output pins
+	TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+	TCCR0B |= (1 << CS02); // set prescaler to 256
+	// OCR0A = 255; // set duty cycle for PD6 // AT for constant Speed M2 & M1
+	// OCR0B = 120; // set duty cycle for PD5 // AT for Constant Speed M3 & M4
+
+	
+	while (1)
+	{
+		// change duty cycle to reduce the speed of the motor
+		for (int i = 255; i >= 0; i = i-30)
+		{
+			OCR0A = i; // set duty cycle for PD6
+			OCR0B = i; // Set duty cycle for PD5
+			_delay_ms(12); // wait for 5 ms
+		}
+		for (int j = 0; j <= 255; j=j+30)
+		{
+			OCR0A =j; // set duty cycle for PD6
+			OCR0B =j; // set duty cycle for PD5
+			_delay_ms(10); // wait for 5 ms
+		}
+	}	
+	
+	return 0;
+}*/
+
+//
+ //PWM testing backward and forward
+//Forward (Max, Min) Range = (255,0)
+//Backward (Max, Min) Range = (0,255)
+//#include <avr/io.h>
+//#include <util/delay.h>
+////
+//int main(void){
+//DDRB = 0b00000010;
+//PORTB = 0b00000010;
+//_delay_ms(1000);
+//PORTB = 0b00000000;
+//_delay_ms(1000);
+//PORTB = 0b00000010;
+	//speedControl(70,180);
+//
+	//_delay_ms(120);
+	//PORTD = 0b00110000;
+		//speedControl(180,70);
+
+//} 
+//void speedControl(int dutycycle_Grp1, int dutyCycle_Grp2){
+//
+//TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+//TCCR0B |= (1 << CS02); // set prescaler to 256
+//OCR0A = dutycycle_Grp1; // set duty cycle for PD6 // AT for constant Speed M3 & M4
+//OCR0B = dutyCycle_Grp2; // set duty cycle for PD5 // AT for Constant Speed M2 & M1
+//}
+
+
+
+// Line following algorithm for 4wd using PWM on grp motors
+/*
+int main(void)
+{
+	DDRD = 0b01110100; //Forward
+	DDRD |= (1 << PD5) | (1 << PD6) ; // set PD5 and PD6 as output pins
+	TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+	TCCR0B |= (1 << CS02); // set prescaler to 256
+
+	while (1)
+	{
+		// Read sensor values
+		int left = (PINB & (1 << PB3)) ? 1 : 0;
+		int center = (PIND & (1 << PD7)) ? 1 : 0;
+		int right = (PINB & (1 << PB0)) ? 1 : 0 ; // Determine the line position
+
+		if ((left) && (center) && (right))
+		{
+			// On the line - go straight
+			PORTD = 0b01100000; // set right side forward
+			OCR0A = 105;
+			OCR0B = 105;
+		}
+		else if ((!left) && (center) && (right)) // Slight Right Turn
+		{
+			PORTD = 0b00110000; // set right side forward
+			OCR0A = 180;		 //Backward right side
+			OCR0B = 115;		//Forward left side
+		}
+		else if ((!left) && (!center) && (right))	// Sharp Right Turn
+		{
+			PORTD = 0b00110000; // set right side forward
+			OCR0A = 160;		//Backward right side
+			OCR0B = 135;		//Forward left side
+		}
+		else if ((left) && (center) && (!right)) // Slight left Turn
+		{
+			PORTD = 0b01000100; // set right side forward
+			OCR0A = 115;		//Forward right side
+			OCR0B = 180;	   //Backward left side
+		}
+		else if ((left) && (!center) && (!right))	// Sharp Left Turn
+		{
+			PORTD = 0b01000100; // set right side forward
+			OCR0A = 135;		//Forward right side
+			OCR0B = 160;	   //Backward left side
+		}
+		else if((!left) && (!center) && (!right))
+		{
+			// Lost the line - stop
+			PORTD = 0b00000000; // set both motors to stop
+			OCR0A = 0;
+			OCR0B = 0;
+		}
+	}
+	return 0;
+} */
+
+
+
+
+// Servo Motor Algorithm
+/*#include <avr/io.h>
+#include <avr/delay.h>
+#define _DELAY_BACKWARD_COMPATIBLE_
+int pos;
+int main(void){
+	
+	DDRC |= (1 << PORTC3);
+	procedure(0);
+	while(1){
+		for(int pos = 60; pos <= 120; pos++){
+			procedure(pos);
+			_delay_ms(2000);
+		}
+		
+		//_delay_ms(2000);
+		//procedure(160);
+		//_delay_ms(2000);
+		//
+		//procedure(20);
+		//_delay_ms(2000);
+		////for(int pos = 0; pos <= 180; pos+=1){
+			//procedure(pos);
+			//_delay_ms(150);
+		//}
+	//
+		//for(int pos = 180; pos >= 0; pos -=1 ){
+			//procedure(pos);
+			//_delay_ms(150);
+		//}
+}
+}
+
+*/
+/*void procedure(int angleDeviation) {
+	long pulseWidth = (angleDeviation * 11) + 500;			// Calculation for value of pulse width
+	PORTC = 0b00001000;
+	for(int i = 0; i < pulseWidth; i++){
+		_delay_us(1);
+	}
+	//_delay_us(pulseWidth)
+	PORTC = 0b00000000;
+	for(int j = 0; j < (10-pulseWidth/1000); j++){
+		_delay_us(1);
+	}
+	//_delay_ms((20-pulseWidth/1000));
+}*/
+
+
+// Ultrasonic Sensor
+
+/*
+#define F_CPU 16000000UL // Set clock speed
+
+int main(void)
+{
+	DDRB |= (1 << PB4); // Set PB1 as output
+	DDRB &= ~(1 << PB5); // Set PB5 as input
+	PORTB &= ~(1 << PB4); // Set PB1 low initially
+
+	while (1)
+	{
+		// Send trigger pulse
+		PORTB |= (1 << PB4); // Set PB5 high
+		_delay_us(10); // Wait 10us
+		PORTB &= ~(1 << PB4); // Set PB5 low
+
+		// Measure echo pulse duration
+		uint16_t pulse_width = 0;
+		while ((PINB & (1 << PB5)) == 0); // Wait for echo pulse start
+		while ((PINB & (1 << PB5)) != 0) // Measure pulse width
+		{
+			pulse_width++;
+			_delay_us(1);
+		}
+
+		// Calculate distance in cm
+		uint16_t distance = (pulse_width / 2)/29.1;
+
+		// Turn on LED if object detected within 10 cm
+		if (distance < 10)
+		{
+			PORTB |= (1 << PB1); // Set PB1 high to turn on LED
+		}
+		else
+		{
+			PORTB &= ~(1 << PB1); // Set PB1 low to turn off LED
+		}
+
+		_delay_ms(100); // Wait for 100ms before next measurement
+	}
+}
+*/
+/*
+
+// Collision Detection Algo
+
+#define _DELAY_BACKWARD_COMPATIBLE_
+int pos;
+uint16_t obstace_avoidance();
+int main(void){
+	
+	DDRC |= (1 << PORTC3);
+	DDRB |= (1 << PB4); // Set PB1 as output
+	DDRB &= ~(1 << PB5); // Set PB5 as input
+	PORTB &= ~(1 << PB4); // Set PB1 low initially
+	while(1){
+		//obstace_avoidance();
+		for(int pos = 0; pos <= 180; pos+=1){
+			procedure(pos);
+			uint16_t distance = obstace_avoidance();
+			//Turn on LED if object detected within 20 cm
+		if (distance < 20)
+		{
+			PORTB |= (1 << PB1); // Set PB1 high to turn on LED
+		}
+		else
+		{
+			PORTB &= ~(1 << PB1); // Set PB1 low to turn off LED
+		}
+
+			_delay_ms(150);
+		}
+	
+		for(int pos = 180; pos >= 0; pos -=1 ){
+			procedure(pos);
+			uint16_t distance = obstace_avoidance();
+
+			//// Turn on LED if object detected within 20 cm
+			if (distance < 20)
+			{
+				PORTB |= (1 << PB1); // Set PB1 high to turn on LED
+			}
+			else
+			{
+				PORTB &= ~(1 << PB1); // Set PB1 low to turn off LED
+			}
+
+			_delay_ms(150);
+		}
+	
+	
+		
+}
+}
+
+uint16_t obstace_avoidance(){
+	// Send trigger pulse
+	PORTB |= (1 << PB4); // Set PB5 high
+	_delay_us(10); // Wait 10us
+	PORTB &= ~(1 << PB4); // Set PB5 low
+
+	// Measure echo pulse duration
+	uint16_t pulse_width = 0;
+	while ((PINB & (1 << PB5)) == 0); // Wait for echo pulse start
+	while ((PINB & (1 << PB5)) != 0) // Measure pulse width
+	{
+		pulse_width++;
+		_delay_us(1);
+	}
+
+	// Calculate distance in cm
+	uint16_t distance = (pulse_width / 2)/29.1;
+	
+	return distance;
+	//_delay_ms(100); // Wait for 100ms before next measurement
+}
+void procedure(int angleDeviation) {
+	long pulseWidth = (angleDeviation * 11) + 500;			// Calculation for value of pulse width
+	PORTC = 0b00001000;
+	for(int i = 0; i < pulseWidth; i++){
+		_delay_us(1);
+	}
+	//_delay_us(pulseWidth)
+	PORTC = 0b00000000;
+	for(int j = 0; j < (20-pulseWidth/1000); j++){
+		_delay_ms(1);
+	}
+	//_delay_ms((20-pulseWidth/1000));
+}
+*/
+
+
+
+
+
+
+
+//#define F_CPU 16000000UL
+//#include <avr/io.h>
+//#include <util/delay.h>
+//int main(void){
+	//
+	//// Forward Movement
+	//DDRD |= 0b00010100; //Pin 5 and 6 set as output
+//
+	////AT1 - Left Motors
+	//PORTD = 0b00000100;
+	//_delay_ms(10000);
+	////AT2 - Right Motors
+	//PORTD = 0b00010000;
+	//_delay_ms(10000);
+//
+	////AT3 - All tyres same speed
+	//PORTD = 0b00010100;
+	//_delay_ms(10000);
+//
+	////AT4 - Stop after 5 seconds
+	//PORTD = 0b00010100;
+	//_delay_ms(5000);
+	//PORTD = 0b00000000;
+	//_delay_ms(10000);
+//
+	////AT5 - Stop and go
+	//PORTD = 0b00010100;
+	//_delay_ms(1500);
+	//PORTD = 0b00000000;
+	//_delay_ms(5000);
+	//PORTD = 0b00010100;
+	//
+	//
+	//while(1)
+	//{
+		//
+	//}
+//}
+
+
+
+//// BLUETOOTH Module
+//#define F_CPU 16000000UL
+//#define BAUD 9600
+//#include <avr/io.h>
+//#include <util/setbaud.h>
+//#include <util/delay.h>
+//#include <avr/interrupt.h>
+//
+//
+//char input_Command;
+//int timer = 0;
+//int main(void)
+//{
+	//TCCR1B = (1 << CS12);							   // Set Pre scalar as 256
+	//UBRR0H = UBRRH_VALUE;
+	//UBRR0L = UBRRL_VALUE;
+	//UCSR0B |= (1<<RXEN0) | (1 << RXCIE0);		   // Enable transmission
+	//UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);			  // Set frame to 8 bits
+	//DDRD = (1<<PORTB1);							 // Set pin 6 as output pin
+	//sei();
+	//while (1)
+	//{
+		//if (input_Command == 'F'){
+			//PORTB = 0b00000010;
+		//}
+		//else if(input_Command == 'B'){
+			//PORTB = 0b00000000;
+		//}
+	//}
+//}
+//
+//
+//ISR(USART_RX_vect) {
+	//input_Command = UDR0;
+	//
+	//
+//}
+
+/*
+#define F_CPU 16000000UL
+#define _DELAY_BACKWARDCOMPATIBLE
+#include <avr/io.h>
+#include <util/delay.h>
+uint16_t distance, A1, A2, length();
+int pos = 0;
+
+
+int main(void){
+	procedure(pos);
+	DDRD = 0b01110100;
+	DDRB =0b000010000;
+	DDRC = (1 << PC3);
+	
+procedure(90);
+	_delay_ms(500);
+	//DDRD |= (1 << PD5) | (1 << PD6) ; // set PD5 and PD6 as output pins
+	TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+	TCCR0B |= (1 << CS02); // set prescaler to 256
+	while(1){
+		Avoid();
+	}
+}
+	
+	
+void Avoid(){
+	distance = length();
+	if ((distance < 20) && (distance != 0))
+	{
+		PORTD = 0b00000000;
+		_delay_ms(150);
+		moveToAngle(0,160);
+		_delay_ms(100);
+		A1 = length();
+		_delay_ms(100);
+		moveToAngle(0,45);
+		
+		A2 = distance;
+		_delay_ms(100);
+		moveToAngle(0,90);
+		if (A1 > A2)
+		{
+			PORTB = 0b00000010;
+			PORTD = 0b01000100;
+			OCR0A = 50;
+			OCR0B = 100;
+		moveToAngle(0,90);
+			_delay_ms(600);
+			}else{
+			PORTD = 0b00110000;
+			OCR0A = 100;
+			OCR0B = 50;
+			moveToAngle(0,90);
+			_delay_ms(600);
+		}
+		}else{
+		PORTD = 0b01100000;
+		OCR0A = 70;
+		OCR0B = 70;
+	}
+	}
+	
+	
+	
+	
+	uint16_t length(){
+	// Send trigger pulse
+	PORTB |= (1 << PB4); // Set PB5 high
+	_delay_us(10); // Wait 10us
+	PORTB &= ~(1 << PB4); // Set PB5 low
+	// Measure echo pulse duration
+	uint16_t pulse_width = 0;
+	while ((PINB & (1 << PB5)) == 0); // Wait for echo pulse start
+	while ((PINB & (1 << PB5)) != 0) // Measure pulse width
+	{
+		pulse_width++;
+		_delay_us(1);
+	}
+	// Calculate distance in cm
+	uint16_t distance = (pulse_width / 2)/29.1;
+	return distance;
+	//_delay_ms(100); // Wait for 100ms before next measurement
+}
+
+
+
+void procedure(int angleDeviation) {
+	long pulseWidth = (angleDeviation * 11) + 500; // Calculation for value of pulse width
+	PORTC = 0b00001000;
+	for(int i = 0; i < pulseWidth; i++){
+		_delay_ms(1);
+	}
+	//_delay_us(pulseWidth)
+	PORTC = 0b00000000;
+	for(int j = 0; j < (20-pulseWidth/1000); j++){
+		_delay_ms(1);
+	}
+	//_delay_ms((20-pulseWidth/1000));
+}
+
+void moveToAngle(int initialVal, int angleValue){
+	
+	for(int position = initialVal; position < angleValue; position++ ){
+	procedure(position);
+	_delay_ms(100);}
+}*/
+
+//
+//#define f_cpu 16000000ul
+//#define baud 9600
+//#include <util/setbaud.h>
+//#define _delay_backwardcompatible
+//#include <avr/io.h>
+//#include <util/delay.h>
+//uint16_t distance, a1, a2, length();
+//int pos;
+//int main(void){
+	//ddrd = 0b01110100;
+	//ddrb =0b000010010;
+	//ddrc = (1 << portc3);
+	//procedure(90);
+	//_delay_ms(400);
+	////ddrd |= (1 << pd5) | (1 << pd6) ; // set pd5 and pd6 as output pins
+	//tccr0a |= (1 << com0a1) | (1 << com0b1) | (1 << wgm01) | (1 << wgm00); // set fast pwm mode with non-inverting output for oc0a and oc0b
+	//tccr0b |= (1 << cs02);		 // set pre scaler to 256
+	//ubrr0h = ubrrh_value;
+	//ubrr0l = ubrrl_value;
+	//tccr1b = (1 << cs12);							   // set pre scalar as 256
+	//
+	//while(1){
+		//avoid();
+	//}
+	//}
+	//
+	//
+//void avoid(){
+	//distance = length();
+	//if ((distance < 20) && (distance != 0))
+	//{
+		//portd = 0b00000000;
+		//_delay_ms(1500);
+		//procedure(140);
+		//_delay_ms(250);
+		//a1 = length();
+		//_delay_ms(1500);
+		//procedure(45);
+		//_delay_ms(250);
+		//a2 = distance;
+		//_delay_ms(1500);
+		//procedure(90);
+		//if (a1 > a2)
+		//{
+			////portb = 0b00000010;
+			//portd = 0b01000100;
+			//ocr0a = 50;
+			//ocr0b = 100;
+			//_delay_ms(400);
+			//procedure(90);
+			//}else{
+			//portd = 0b00110000;
+			//ocr0a = 100;
+			//ocr0b = 50;
+			//_delay_ms(400);
+			//procedure(90);
+		//}
+		//}else{
+		//portd = 0b01100000;
+		//ocr0a = 70;
+		//ocr0b = 70;
+	//}
+	//}
+	//
+	//
+//uint16_t length(){
+	//// send trigger pulse
+	//portb |= (1 << pb4); // set pb5 high
+	//_delay_us(2); // wait 2us
+	//portb &= ~(1 << pb4); // set pb5 low
+	//// measure echo pulse duration
+	//uint16_t pulse_width = 0;
+	//while ((pinb & (1 << pb5)) == 0); // wait for echo pulse start
+	//while ((pinb & (1 << pb5)) != 0) // measure pulse width
+	//{
+		//pulse_width++;
+		//_delay_us(1);
+	//}
+	//// calculate distance in cm
+	//uint16_t distance = (pulse_width / 2)/29.1;
+	//return distance;
+	////_delay_ms(100); // wait for 100ms before next measurement
+//}
+//
+//void procedure(int angledeviation) {
+	//for (int i = 0;i < 15;i++){
+	//long pulsewidth = (angledeviation * 11) + 500; // calculation for value of pulse width
+	//portc = 0b00001000;
+	//for(int i = 0; i < pulsewidth; i++){
+		//_delay_us(1);
+	//}
+	////_delay_us(pulsewidth)
+	//portc = 0b00000000;
+	//for(int j = 0; j < (20-pulsewidth/1000); j++){
+		//_delay_ms(1);
+	//}
+//}	//_delay_ms((20-pulsewidth/1000));
+//}
+//
+//
+//#define F_CPU 16000000UL
+//#define _DELAY_BACKWARDCOMPATIBLE
+//#include <avr/io.h>
+//#include <util/delay.h>
+//uint16_t distance, A1, A2, length();
+//int pos;
+//int main(void){
+	//DDRD = 0b01110100;
+	//DDRB =0b000010010;
+	//DDRC = (1 << PC3);
+	//procedure(90);
+	//_delay_ms(600);
+	////DDRD |= (1 << PD5) | (1 << PD6) ; // set PD5 and PD6 as output pins
+	//TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+	//TCCR0B |= (1 << CS02); // set prescaler to 256
+	//while(1){
+		//Avoid();
+	//}
+//}
+//void Avoid(){
+	//distance = length();
+	//if ((distance < 20) && (distance != 0))
+	//{
+		//PORTD = 0b00000000;
+		//_delay_ms(130);
+		//procedure(160);
+		//_delay_ms(120);
+		//A1 = length();
+		//_delay_ms(120);
+		//procedure(40);
+		//_delay_ms(120);
+		//A2 = distance;
+		//_delay_ms(120);
+		//procedure(90);
+		//if (A1 > A2)
+		//{
+			////PORTB = 0b00000010;
+			//PORTD = 0b01000100;
+			//OCR0A = 50;
+			//OCR0B = 100;
+			//procedure(90);
+			//_delay_ms(500);
+			//}else{
+			//PORTD = 0b00110000;
+			//OCR0A = 100;
+			//OCR0B = 50;
+			//procedure(90);
+			//_delay_ms(500);
+		//}
+		//}else{
+		//PORTD = 0b01100000;
+		//OCR0A = 70;
+		//OCR0B = 70;
+	//}
+//}
+//uint16_t length(){
+	//// Send trigger pulse
+	//PORTB |= (1 << PB4); // Set PB5 high
+	//_delay_us(10); // Wait 10us
+	//PORTB &= ~(1 << PB4); // Set PB5 low
+	//// Measure echo pulse duration
+	//uint16_t pulse_width = 0;
+	//while ((PINB & (1 << PB5)) == 0); // Wait for echo pulse start
+	//while ((PINB & (1 << PB5)) != 0) // Measure pulse width
+	//{
+		//pulse_width++;
+		//_delay_us(1);
+	//}
+	//// Calculate distance in cm
+	//uint16_t distance = (pulse_width / 2)/29.1;
+	//return distance;
+	////_delay_ms(100); // Wait for 100ms before next measurement
+//}
+//void procedure(int angleDeviation) {
+	//for (int i = 0;i < 90;i++){
+		//long pulseWidth = (angleDeviation * 11) + 500; // Calculation for value of pulse width
+		//PORTC = 0b00001000;
+		//for(int i = 0; i < pulseWidth; i++){
+		//}
+		////_delay_us(pulseWidth)
+		//PORTC = 0b00000000;
+		//for(int j = 0; j < (20-pulseWidth/1000); j++){
+			//_delay_ms(1);
+		//}
+	//}//_delay_ms((20-pulseWidth/1000));
+//}
+
+
+//Bluetooth with Line following
+//
+//#define F_CPU 16000000UL
+//#define BAUD 9600
+//#include <avr/io.h>
+//#include <util/setbaud.h>
+//#include <util/delay.h>
+//#include <avr/interrupt.h>
+//#include <stdbool.h>
+//char input_Command;
+//uint16_t flag;
+//int main(void)
+//{
+	//TCCR1B = (1 << CS12);// Set Pre scalar as 256
+	//UBRR0H = UBRRH_VALUE;
+	//UBRR0L = UBRRL_VALUE;
+	//UCSR0B |= (1<<RXEN0) | (1 << RXCIE0);// Enable transmission
+	//UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);// Set frame to 8 bits
+	//DDRB = 0b00000010;
+	//DDRD = 0b01110100;
+	//TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+	//TCCR0B |= (1 << CS02); // set prescaler to 256
+	//sei();
+	//while (1)
+	//{
+		//switch (input_Command){
+			//case 'F':
+			//PORTB = 0b00000010; // Turn on LED
+			//Line_follow();
+			//break;
+			//case 'B':
+			//PORTB = 0b00000000; // Turn off LED
+			//PORTD = 0b00000000;
+			//OCR0A = 0;
+			//OCR0B = 0;
+			//break;
+		//}
+	//}
+//}
+	//
+//ISR(USART_RX_vect) {
+	//input_Command = UDR0;
+//}
+//void Line_follow(){
+	//flag = 1;
+	//while(flag){
+		//int left = (PINB & (1 << PB3)) ? 1 : 0;
+		//int center = (PIND & (1 << PD7)) ? 1 : 0;
+		//int right = (PINB & (1 << PB0)) ? 1 : 0 ; // Determine the line position if ((left) && (center) && (right))
+		//if((left) && (center) && (right)){
+			//// On the line - go straight
+			//PORTD = 0b01100000; // set right side forward
+			//OCR0A = 50;
+			//OCR0B = 50;
+		//}
+		//else if ((!left) && (center) && (right)) // Slight Right Turn
+		//{
+			//PORTD = 0b00110000; // set right side forward
+			//OCR0A = 50;
+			//OCR0B = 170;
+		//}
+		//else if ((!left) && (!center) && (right))// Sharp Right Turn
+		//{
+			//PORTD = 0b00110000; // set right side forward
+			//OCR0A = 40;
+			//OCR0B = 220;
+		//}
+		//else if ((left) && (center) && (!right)) // Slight left Turn
+		//{
+			//PORTD = 0b01000100; // set right side forward
+			//OCR0A = 170;
+			//OCR0B = 50;
+		//}
+		//else if ((left) && (!center) && (!right))// Sharp Right Turn
+		//{
+			//PORTD = 0b01000100; // set right side forward
+			//OCR0A = 220;
+			//OCR0B = 40;
+		//}
+		//else if((!left) && (!center) && (!right))
+		//{
+			//// Lost the line - stop
+			//PORTD = 0b00000000;// set both motors to stop
+			//OCR0A = 0;
+			//OCR0B = 0;
+		//}
+		//if(input_Command == 'B'){
+			//flag = 0;
+			//break;
+		//}
+	//}
+//}
+////
+//
+//#define F_CPU 16000000UL
+//#define BAUD 9600
+//#include <avr/io.h>
+//#include <util/setbaud.h>
+//#include <util/delay.h>
+//#include <avr/interrupt.h>
+//char input_Command;
+//uint16_t distance, A1, A2, length();
+//uint16_t flag;
+//int timer = 0;
+//void Avoid(void);
+//void procedure(int angleDeviation);
+//int main(void)
+//{
+	//TCCR1B = (1 << CS12);// Set Pre scalar as 256
+	//UBRR0H = UBRRH_VALUE;
+	//UBRR0L = UBRRL_VALUE;
+	//UCSR0B |= (1<<RXEN0) | (1 << RXCIE0);// Enable transmission
+	//UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);// Set frame to 8 bits
+	//DDRD = 0b01110100;
+	//DDRB =0b000010010;
+	//DDRC = (1 << PC3);
+	//procedure(90);
+	//_delay_ms(600);
+	//TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+	//TCCR0B |= (1 << CS02); // set prescaler to 256
+	//sei();
+	//while (1)
+	//{
+		//if (input_Command == 'F'){
+			//PORTB = 0b00000010; // Turn on LED
+			//Avoid();
+		//}
+		//else if(input_Command == 'B'){
+			//PORTB = 0b00000000; // Turn off LED
+			//PORTD = 0b00000000;
+			//OCR0A = 0;
+			//OCR0B = 0;
+		//}
+//}
+	//}
+//ISR(USART_RX_vect) {
+	//input_Command = UDR0;
+	//}
+//void Avoid(void){
+	//flag = 1;
+	//while(flag){
+		//distance = length();
+		//if (input_Command == 'B'){
+			//flag = 0;
+			//break;
+		//}
+		//if ((distance < 15) && (distance != 0))
+		//{
+			//PORTD = 0b00000000;
+			//OCR0A = 0;
+			//OCR0B = 0;
+			////_delay_ms(30);
+			//procedure(160);
+			//_delay_ms(20);
+			//A1 = length();
+			////_delay_ms(20);
+			//procedure(20);
+			//_delay_ms(20);
+			//A2 = distance;
+			////_delay_ms(20);
+			//procedure(90);
+			//if (A1 > A2)
+			//{
+				////PORTB = 0b00000010;
+				//PORTD = 0b01000100;
+				//OCR0A = 220;
+				//OCR0B = 110;
+				//procedure(90);
+				//_delay_ms(150);
+				//}else{
+				//PORTD = 0b00110000;
+				//OCR0A = 110;
+				//OCR0B = 220;
+				//procedure(90);
+				//_delay_ms(150);
+			//}
+			//}else{
+			//PORTD = 0b01100000;
+			//OCR0A = 60;
+			//OCR0B = 60;
+		//}
+	//}
+//}
+//uint16_t length(){
+	//// Send trigger pulse
+	//PORTB |= (1 << PB4); // Set PB5 high
+	//_delay_us(10); // Wait 10us
+	//PORTB &= ~(1 << PB4); // Set PB5 low
+	//// Measure echo pulse duration
+	//uint16_t pulse_width = 0;
+	//while ((PINB & (1 << PB5)) == 0); // Wait for echo pulse start
+	//while ((PINB & (1 << PB5)) != 0) // Measure pulse width
+	//{
+		//pulse_width++;
+		//_delay_us(1);
+	//}
+	//// Calculate distance in cm
+	//uint16_t distance = (pulse_width / 2)/29.1;
+	//return distance;
+	////_delay_ms(100); // Wait for 100ms before next measurement
+	//}
+//void procedure(int angleDeviation) {
+	//for (int i = 0;i < 90;i++){
+		//long pulseWidth = (angleDeviation * 11) + 500; // Calculation for value of pulse width
+		//PORTC = 0b00001000;
+		//for(int i = 0; i < pulseWidth; i++){
+		//}
+		////_delay_us(pulseWidth)
+		//PORTC = 0b00000000;
+		//for(int j = 0; j < (20-pulseWidth/1000); j++){
+		//}
+	//}//_delay_ms((20-pulseWidth/1000));
+//}
+//
+
+
+////#define F_CPU 16000000UL
+////#define BAUD 9600
+////#include <avr/io.h>
+////#include <util/setbaud.h>
+////#include <util/delay.h>
+////#include <avr/interrupt.h>
+////#include <stdbool.h>
+////char input_Command;
+////uint16_t flag;
+//////unsigned char smile[] = {0x00, 0x00, 0x1c, 0x02, 0x02, 0x02, 0x5c, 0x40, 0x40, 0x5c, 0x02, 0x02, 0x02, 0x1c, 0x00, 0x00};
+////unsigned char start[] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};
+////unsigned char front[] = {0x00,0x00,0x00,0x00,0x00,0x24,0x12,0x09,0x12,0x24,0x00,0x00,0x00,0x00,0x00,0x00};
+////unsigned char back[] = {0x00,0x00,0x00,0x00,0x00,0x24,0x48,0x90,0x48,0x24,0x00,0x00,0x00,0x00,0x00,0x00};
+////unsigned char left[] = {0x00,0x00,0x00,0x00,0x00,0x00,0x44,0x28,0x10,0x44,0x28,0x10,0x44,0x28,0x10,0x00};
+////unsigned char right[] = {0x00,0x10,0x28,0x44,0x10,0x28,0x44,0x10,0x28,0x44,0x00,0x00,0x00,0x00,0x00,0x00};
+////unsigned char STOP[] = {0x2E,0x2A,0x3A,0x00,0x02,0x3E,0x02,0x00,0x3E,0x22,0x3E,0x00,0x3E,0x0A,0x0E,0x00};
+////int main(void)
+////{
+////TCCR1B = (1 << CS12);// Set Pre scalar as 256
+////UBRR0H = UBRRH_VALUE;
+////UBRR0L = UBRRL_VALUE;
+////UCSR0B |= (1<<RXEN0) | (1 << RXCIE0);// Enable transmission
+////UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);// Set frame to 8 bits
+////DDRB = 0b00000010;
+////DDRD = 0b01110100;
+////DDRC |= 0b00110000;
+////TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+////TCCR0B |= (1 << CS02); // set prescaler to 256
+////sei();
+////while (1)
+////{
+////Line_follow();
+//////switch (input_Command){
+//////case 'F':
+//////PORTB = 0b00000010; // Turn on LED
+//////Line_follow();
+//////break;
+//////case 'B':
+//////PORTB = 0b00000000; // Turn off LED
+//////PORTD = 0b00000000;
+//////OCR0A = 0;
+//////OCR0B = 0;
+//////break;
+//////}
+////}
+////}
+////ISR(USART_RX_vect) {
+////input_Command = UDR0;
+////}
+////void Line_follow(){
+////flag = 1;
+////while(flag){
+////int left = (PINB & (1 << PB3)) ? 1 : 0;
+////int center = (PIND & (1 << PD7)) ? 1 : 0;
+////int right = (PINB & (1 << PB0)) ? 1 : 0 ; // Determine the line position if ((left) && (center) && (right))
+////int extreme_left = (PINB & (1 << PB2)) ? 1 : 0 ;
+////int extreme_right = (PINC & (1 << PC0)) ? 1 : 0;
+////
+////if((extreme_left) && (left) && (center) && (right) && (extreme_right)){
+////// On the line - go straight
+////PORTD = 0b01100000; // set right side forward
+////matrix_display(front);
+////OCR0A = 50;
+////OCR0B = 50;
+////}
+////
+////else if ((!extreme_left) && (left) && (center) && (right) && (extreme_right)) // Slight Right Turn
+////{
+////PORTD = 0b00110000; // set right side forward
+////matrix_display(left);
+////OCR0A = 30;
+////OCR0B = 120;
+////}
+////else if ((!extreme_left) && (!left) && (center) && (right) && (extreme_right)) // Slight Right Turn
+////{
+////PORTD = 0b00110000; // set right side forward
+////matrix_display(left);
+////OCR0A = 50;
+////OCR0B = 170;
+////}
+////else if ((!extreme_left) && (!left) && (!center) && (right) && (extreme_right))// Sharp Right Turn
+////{
+////PORTD = 0b00110000; // set right side forward
+////matrix_display(left);
+////OCR0A = 40;
+////OCR0B = 220;
+////}
+////else if ((extreme_left) && (left) && (center) && (right) && (!extreme_right)) // Slight left Turn
+////{
+////PORTD = 0b01000100; // set right side forward
+////matrix_display(right);
+////OCR0A = 120;
+////OCR0B = 30;
+////}
+////else if ((extreme_left) && (left) && (center) && (!right) && (!extreme_right)) // Slight left Turn
+////{
+////PORTD = 0b01000100; // set right side forward
+////matrix_display(right);
+////OCR0A = 170;
+////OCR0B = 50;
+////}
+////else if ((extreme_left) && (left) && (!center) && (!right) && (!extreme_right))// Sharp Right Turn
+////{
+////PORTD = 0b01000100; // set right side forward
+////matrix_display(right);
+////OCR0A = 220;
+////OCR0B = 40;
+////}
+////else if((!extreme_left) && (!left) && (!center) && (!right) && (!extreme_right))
+////{
+////// Lost the line - stop
+////PORTD = 0b00000000;// set both motors to stop
+////matrix_display(STOP);
+////OCR0A = 0;
+////OCR0B = 0;
+////}
+////if(input_Command == 'B'){
+////flag = 0;
+////break;
+////}
+////}
+////}
+////void IIC_start(){
+////PORTC = 0b00010000;
+////PORTC = 0b00110000;
+////_delay_us(30);
+////PORTC = 0b00100000;
+////_delay_us(30);
+////PORTC = 0b00000000;
+////};
+////void IIC_end(){
+////PORTC = 0b00000000;
+////_delay_us(30);
+////PORTC = 0b00100000;
+////_delay_us(30);
+////PORTC =0b00110000;
+////_delay_us(30);
+////};
+////void IIC_send(unsigned char send_data){
+////for (char mask = 0x01; mask != 0; mask <<= 1)
+////{
+////if (send_data & mask)
+////{
+////PORTC = 0b00010000;
+////}else {
+////PORTC = 0b00000000;
+////}
+////_delay_us(30);
+////PORTC =0b00100000;
+////_delay_us(30);
+////PORTC = 0b00000000;
+////}
+////};
+////void matrix_display(unsigned char matrix_smile[]){
+////IIC_start();
+////IIC_send(0xc0);
+////for (int i = 0; i < 16; i++) //the pattern data is 16 bytes
+////{
+////IIC_send(matrix_smile[i]); //Transmit the data of the pattern
+////}
+////IIC_end(); //End pattern data transmission
+////IIC_start();
+////IIC_send(0x8A); //Display control, select 4/16 pulse width
+////IIC_end();
+////}
+////
+////#define F_CPU 16000000UL
+////#define BAUD 9600
+////#include <avr/io.h>
+////#include <util/setbaud.h>
+////#include <util/delay.h>
+////#include <avr/interrupt.h>
+////#include <stdbool.h>
+////char input_Command;
+////uint16_t flag;
+//////unsigned char smile[] = {0x00, 0x00, 0x1c, 0x02, 0x02, 0x02, 0x5c, 0x40, 0x40, 0x5c, 0x02, 0x02, 0x02, 0x1c, 0x00, 0x00};
+////unsigned char start[] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};
+////unsigned char front[] = {0x00,0x00,0x00,0x00,0x00,0x24,0x12,0x09,0x12,0x24,0x00,0x00,0x00,0x00,0x00,0x00};
+////unsigned char back[] = {0x00,0x00,0x00,0x00,0x00,0x24,0x48,0x90,0x48,0x24,0x00,0x00,0x00,0x00,0x00,0x00};
+////unsigned char left[] = {0x00,0x00,0x00,0x00,0x00,0x00,0x44,0x28,0x10,0x44,0x28,0x10,0x44,0x28,0x10,0x00};
+////unsigned char right[] = {0x00,0x10,0x28,0x44,0x10,0x28,0x44,0x10,0x28,0x44,0x00,0x00,0x00,0x00,0x00,0x00};
+////unsigned char STOP[] = {0x2E,0x2A,0x3A,0x00,0x02,0x3E,0x02,0x00,0x3E,0x22,0x3E,0x00,0x3E,0x0A,0x0E,0x00};
+////int main(void)
+////{
+////TCCR1B = (1 << CS12);// Set Pre scalar as 256
+////UBRR0H = UBRRH_VALUE;
+////UBRR0L = UBRRL_VALUE;
+////UCSR0B |= (1<<RXEN0) | (1 << RXCIE0);// Enable transmission
+////UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);// Set frame to 8 bits
+////DDRB = 0b00000010;
+////DDRD = 0b01110100;
+////DDRC |= 0b00110000;
+////TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+////TCCR0B |= (1 << CS02); // set prescaler to 256
+////sei();
+////while (1)
+////{
+////Line_follow();
+//////switch (input_Command){
+//////case 'F':
+//////PORTB = 0b00000010; // Turn on LED
+//////Line_follow();
+//////break;
+//////case 'B':
+//////PORTB = 0b00000000; // Turn off LED
+//////PORTD = 0b00000000;
+//////OCR0A = 0;
+//////OCR0B = 0;
+//////break;
+//////}
+////}
+////}
+////ISR(USART_RX_vect) {
+////input_Command = UDR0;
+////}
+////void Line_follow(){
+////flag = 1;
+////while(flag){
+////int left = (PINB & (1 << PB3)) ? 1 : 0;
+////int center = (PIND & (1 << PD7)) ? 1 : 0;
+////int right = (PINB & (1 << PB0)) ? 1 : 0 ; // Determine the line position if ((left) && (center) && (right))
+////int extra_IR = (PINC & (1 << PC0)) ? 1 : 0;
+////int extra_left = (PINB & (1<<PB2)) ? 1:0;
+////if((extra_left) && (left) && (center) && (right) && (extra_IR)){
+////// On the line - go straight
+////PORTD = 0b01100000; // set right side forward
+////matrix_display(front);
+////OCR0A = 50;
+////OCR0B = 50;
+////}
+////else if ((!extra_left) && (left) && (center) && (right) && (extra_IR)) // Slight Right Turn
+////{
+////PORTD = 0b00110000; // set right side forward
+////matrix_display(left);
+////OCR0A = 33;
+////OCR0B = 165;
+////}
+////else if ((!extra_left) && (!left) && (center) && (right) && (extra_IR)) // Slight Right Turn
+////{
+////PORTD = 0b00110000; // set right side forward
+////matrix_display(left);
+////OCR0A = 50;
+////OCR0B = 190;
+////}
+////else if ((!extra_left) && (!left) && (!center) && (right) & (extra_IR))// Sharp Right Turn
+////{
+////PORTD = 0b00110000; // set right side forward
+////matrix_display(left);
+////OCR0A = 50;
+////OCR0B = 235;
+////}
+////else if ((extra_left) && (left) && (center) && (right) && (!extra_IR)) // Slight left Turn
+////{
+////PORTD = 0b01000100; // set right side forward
+////matrix_display(right);
+////OCR0A = 165;
+////OCR0B = 33;
+////}
+////else if ((extra_left) && (left) && (center) && (!right) && (!extra_IR)) // Slight left Turn
+////{
+////PORTD = 0b01000100; // set right side forward
+////matrix_display(right);
+////OCR0A = 190;
+////OCR0B = 50;
+////}
+////else if ((extra_left) && (left) && (!center) && (!right) && (!extra_IR))// Sharp Right Turn
+////{
+////PORTD = 0b01000100; // set right side forward
+////matrix_display(right);
+////OCR0A = 235;
+////OCR0B = 50;
+////}
+////else if((!extra_left) && (!left) && (!center) && (!right) && (!extra_IR))
+////{
+////// Lost the line - stop
+////PORTD = 0b00000000;// set both motors to stop
+////matrix_display(STOP);
+////OCR0A = 0;
+////OCR0B = 0;
+////}
+////if(input_Command == 'B'){
+////flag = 0;
+////break;
+////}
+////}
+////}
+////void IIC_start(){
+////PORTC = 0b00010000;
+////PORTC = 0b00110000;
+////_delay_us(30);
+////PORTC = 0b00100000;
+////_delay_us(30);
+////PORTC = 0b00000000;
+////};
+////void IIC_end(){
+////PORTC = 0b00000000;
+////_delay_us(30);
+////PORTC = 0b00100000;
+////_delay_us(30);
+////PORTC =0b00110000;
+////_delay_us(30);
+////};
+////void IIC_send(unsigned char send_data){
+////for (char mask = 0x01; mask != 0; mask <<= 1)
+////{
+////if (send_data & mask)
+////{
+////PORTC = 0b00010000;
+////}else {
+////PORTC = 0b00000000;
+////}
+////_delay_us(30);
+////PORTC =0b00100000;
+////_delay_us(30);
+////PORTC = 0b00000000;
+////}
+////};
+////void matrix_display(unsigned char matrix_smile[]){
+////IIC_start();
+////IIC_send(0xc0);
+////for (int i = 0; i < 16; i++) //the pattern data is 16 bytes
+////{
+////IIC_send(matrix_smile[i]); //Transmit the data of the pattern
+////}
+////IIC_end();//End pattern data transmission
+////IIC_start();
+////IIC_send(0x8A);//Display control, select 4/16 pulse width
+////IIC_end();
+////}
+//
+//
+//#define F_CPU 16000000UL
+//#define BAUD 9600
+//#include <avr/io.h>
+//#include <util/setbaud.h>
+//#include <util/delay.h>
+//#include <avr/interrupt.h>
+//#include <stdbool.h>
+//char input_Command;
+//uint16_t flag;
+////unsigned char smile[] = {0x00, 0x00, 0x1c, 0x02, 0x02, 0x02, 0x5c, 0x40, 0x40, 0x5c, 0x02, 0x02, 0x02, 0x1c, 0x00, 0x00};
+//unsigned char start[] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};
+//unsigned char front[] = {0x00,0x00,0x00,0x00,0x00,0x24,0x12,0x09,0x12,0x24,0x00,0x00,0x00,0x00,0x00,0x00};
+//unsigned char back[] = {0x00,0x00,0x00,0x00,0x00,0x24,0x48,0x90,0x48,0x24,0x00,0x00,0x00,0x00,0x00,0x00};
+//unsigned char left[] = {0x00,0x00,0x00,0x00,0x00,0x00,0x44,0x28,0x10,0x44,0x28,0x10,0x44,0x28,0x10,0x00};
+//unsigned char right[] = {0x00,0x10,0x28,0x44,0x10,0x28,0x44,0x10,0x28,0x44,0x00,0x00,0x00,0x00,0x00,0x00};
+//unsigned char STOP[] = {0x2E,0x2A,0x3A,0x00,0x02,0x3E,0x02,0x00,0x3E,0x22,0x3E,0x00,0x3E,0x0A,0x0E,0x00};
+//int main(void)
+//{
+//TCCR1B = (1 << CS12);// Set Pre scalar as 256
+//UBRR0H = UBRRH_VALUE;
+//UBRR0L = UBRRL_VALUE;
+//UCSR0B |= (1<<RXEN0) | (1 << RXCIE0);// Enable transmission
+//UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);// Set frame to 8 bits
+//DDRB = 0b00000010;
+//DDRD = 0b01110100;
+//DDRC |= 0b00110000;
+//TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+//TCCR0B |= (1 << CS02); // set prescaler to 256
+//sei();
+//while (1)
+//{
+//Line_follow();
+////switch (input_Command){
+////case 'F':
+////PORTB = 0b00000010; // Turn on LED
+////Line_follow();
+////break;
+////case 'B':
+////PORTB = 0b00000000; // Turn off LED
+////PORTD = 0b00000000;
+////OCR0A = 0;
+////OCR0B = 0;
+////break;
+////}
+//}
+//}
+//ISR(USART_RX_vect) {
+//input_Command = UDR0;
+//}
+//void Line_follow(){
+//flag = 1;
+//while(flag){
+//int left = (PINB & (1 << PB3)) ? 1 : 0;
+//int center = (PIND & (1 << PD7)) ? 1 : 0;
+//int right = (PINB & (1 << PB0)) ? 1 : 0 ; // Determine the line position if ((left) && (center) && (right))
+//int extra_IR = (PINC & (1 << PC0)) ? 1 : 0;
+//int extra_left = (PINB & (1<<PB2)) ? 1:0;
+//if((extra_left) && (left) && (center) && (right) && (extra_IR)){
+//// On the line - go straight
+//PORTD = 0b01100000; // set right side forward
+//matrix_display(front);
+//OCR0A = 50;
+//OCR0B = 50;
+//}
+//else if ((!extra_left) && (left) && (center) && (right) && (extra_IR)) // Slight Right Turn
+//{
+//PORTD = 0b00110000; // set right side forward
+//matrix_display(left);
+//OCR0A = 30;
+//OCR0B = 185;
+//}
+//else if ((!extra_left) && (!left) && (center) && (right) && (extra_IR)) // Slight Right Turn
+//{
+//PORTD = 0b00110000; // set right side forward
+//matrix_display(left);
+//OCR0A = 40;
+//OCR0B = 195;
+//}
+//else if ((!extra_left) && (!left) && (!center) && (right) & (extra_IR))// Sharp Right Turn
+//{
+//PORTD = 0b00110000; // set right side forward
+//matrix_display(left);
+//OCR0A = 50;
+//OCR0B = 220;
+//}
+//else if ((extra_left) &&(left) && (center) && (right) && (!extra_IR)) // Slight left Turn
+//{
+//PORTD = 0b01000100; // set right side forward
+//matrix_display(right);
+//OCR0A = 185;
+//OCR0B = 30;
+//}
+//else if ((extra_left) && (left) && (center) && (!right) && (!extra_IR)) // Slight left Turn
+//{
+//PORTD = 0b01000100; // set right side forward
+//matrix_display(right);
+//OCR0A = 195;
+//OCR0B = 40;
+//}
+//else if ((extra_left)&&(left) && (!center) && (!right) && (!extra_IR))// Sharp Right Turn
+//{
+//PORTD = 0b01000100; // set right side forward
+//matrix_display(right);
+//OCR0A = 220;
+//OCR0B = 50;
+//}
+//else if((!extra_left) && (!left) && (!center) && (!right) && (!extra_IR))
+//{
+//// Lost the line - stop
+//PORTD = 0b00000000;// set both motors to stop
+//matrix_display(STOP);
+//OCR0A = 0;
+//OCR0B = 0;
+//}
+//if(input_Command == 'B'){
+//flag = 0;
+//break;
+//}
+//}
+//}
+//void IIC_start(){
+//PORTC = 0b00010000;
+//PORTC = 0b00110000;
+//_delay_us(30);
+//PORTC = 0b00100000;
+//_delay_us(30);
+//PORTC = 0b00000000;
+//};
+//void IIC_end(){
+//PORTC = 0b00000000;
+//_delay_us(30);
+//PORTC = 0b00100000;
+//_delay_us(30);
+//PORTC =0b00110000;
+//_delay_us(30);
+//};
+//void IIC_send(unsigned char send_data){
+//for (char mask = 0x01; mask != 0; mask <<= 1)
+//{
+//if (send_data & mask)
+//{
+//PORTC = 0b00010000;
+//}else {
+//PORTC = 0b00000000;
+//}
+//_delay_us(30);
+//PORTC =0b00100000;
+//_delay_us(30);
+//PORTC = 0b00000000;
+//}
+//};
+//void matrix_display(unsigned char matrix_smile[]){
+//IIC_start();
+//IIC_send(0xc0);
+//for (int i = 0; i < 16; i++) //the pattern data is 16 bytes
+//{
+//IIC_send(matrix_smile[i]); //Transmit the data of the pattern
+//}
+//IIC_end();//End pattern data transmission
+//IIC_start();
+//IIC_send(0x8A);//Display control, select 4/16 pulse width
+//IIC_end();}
+//
+////
+////#define F_CPU 16000000UL
+////#define BAUD 9600
+////#include <avr/io.h>
+////#include <util/setbaud.h>
+////#include <util/delay.h>
+////#include <avr/interrupt.h>
+////#include <stdbool.h>
+////char input_Command;
+////uint16_t flag;
+//////unsigned char smile[] = {0x00, 0x00, 0x1c, 0x02, 0x02, 0x02, 0x5c, 0x40, 0x40, 0x5c, 0x02, 0x02, 0x02, 0x1c, 0x00, 0x00};
+////unsigned char start[] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};
+////unsigned char front[] = {0x00,0x00,0x00,0x00,0x00,0x24,0x12,0x09,0x12,0x24,0x00,0x00,0x00,0x00,0x00,0x00};
+////unsigned char back[] = {0x00,0x00,0x00,0x00,0x00,0x24,0x48,0x90,0x48,0x24,0x00,0x00,0x00,0x00,0x00,0x00};
+////unsigned char left[] = {0x00,0x00,0x00,0x00,0x00,0x00,0x44,0x28,0x10,0x44,0x28,0x10,0x44,0x28,0x10,0x00};
+////unsigned char right[] = {0x00,0x10,0x28,0x44,0x10,0x28,0x44,0x10,0x28,0x44,0x00,0x00,0x00,0x00,0x00,0x00};
+////unsigned char STOP[] = {0x2E,0x2A,0x3A,0x00,0x02,0x3E,0x02,0x00,0x3E,0x22,0x3E,0x00,0x3E,0x0A,0x0E,0x00};
+////int main(void)
+////{
+////TCCR1B = (1 << CS12);// Set Pre scalar as 256
+////UBRR0H = UBRRH_VALUE;
+////UBRR0L = UBRRL_VALUE;
+////UCSR0B |= (1<<RXEN0) | (1 << RXCIE0);// Enable transmission
+////UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);// Set frame to 8 bits
+////DDRB = 0b00000010;
+////DDRD = 0b01110100;
+////DDRC |= 0b00110000;
+////TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+////TCCR0B |= (1 << CS02); // set prescaler to 256
+////sei();
+////while (1)
+////{
+//////switch (input_Command){
+//////case 'F':
+//////PORTB = 0b00000010; // Turn on LED
+//////Line_follow();
+//////break;
+//////case 'B':
+//////PORTB = 0b00000000; // Turn off LED
+//////PORTD = 0b00000000;
+//////OCR0A = 0;
+//////OCR0B = 0;
+//////break;
+//////}
+////Line_follow();
+////}
+////}
+////ISR(USART_RX_vect) {
+////input_Command = UDR0;
+////}
+////void Line_follow(){
+////flag = 1;
+////while(flag){
+////int left = (PINB & (1 << PB3)) ? 1 : 0;
+////int center = (PIND & (1 << PD7)) ? 1 : 0;
+////int right = (PINB & (1 << PB0)) ? 1 : 0 ; // Determine the line positionif ((left) && (center) && (right))
+////if((left)&&(center)&&(right)){
+////// On the line - go straight
+////PORTD = 0b01100000; // set right side forward
+////matrix_display(front);
+////OCR0A = 70;
+////OCR0B = 70;
+////}
+////else if ((!left) && (center) && (right)) // Slight Right Turn
+////{
+////PORTD = 0b00110000; // set right side forward
+////matrix_display(left);
+////OCR0A = 50;
+////OCR0B = 180;
+////}
+////else if ((!left) && (!center) && (right))// Sharp Right Turn
+////{
+////PORTD = 0b00110000; // set right side forward
+////matrix_display(left);
+////OCR0A = 40;
+////OCR0B = 225;
+////}
+////else if ((left) && (center) && (!right)) // Slight left Turn
+////{
+////PORTD = 0b01000100; // set right side forward
+////matrix_display(right);
+////OCR0A = 180;
+////OCR0B = 50;
+////}
+////else if ((left) && (!center) && (!right))// Sharp Right Turn
+////{
+////PORTD = 0b01000100; // set right side forward
+////matrix_display(right);
+////OCR0A = 225;
+////OCR0B = 40;
+////}
+////else if((!left) && (!center) && (!right))
+////{
+////// Lost the line - stop
+////PORTD = 0b00000000;// set both motors to stop
+////matrix_display(STOP);
+////OCR0A = 0;
+////OCR0B = 0;
+////}
+////if(input_Command == 'B'){
+////flag = 0;
+////break;
+////}
+////}
+////}
+////void IIC_start(){
+////PORTC = 0b00010000;
+////PORTC = 0b00110000;
+////_delay_us(30);
+////PORTC = 0b00100000;
+////_delay_us(30);
+////PORTC = 0b00000000;
+////};
+////void IIC_end(){
+////PORTC = 0b00000000;
+////_delay_us(30);
+////PORTC = 0b00100000;
+////_delay_us(30);
+////PORTC =0b00110000;
+////_delay_us(30);
+////};
+////void IIC_send(unsigned char send_data){
+////for (char mask = 0x01; mask != 0; mask <<= 1)
+////{
+////if (send_data & mask)
+////{
+////PORTC = 0b00010000;
+////}else {
+////PORTC = 0b00000000;
+////}
+////_delay_us(30);
+////PORTC =0b00100000;
+////_delay_us(30);
+////PORTC = 0b00000000;
+////}
+////};
+////void matrix_display(unsigned char matrix_smile[]){
+////IIC_start();
+////IIC_send(0xc0);
+////for (int i = 0; i < 16; i++) //the pattern data is 16 bytes
+////{
+////IIC_send(matrix_smile[i]); //Transmit the data of the pattern
+////}
+////IIC_end();//End pattern data transmission
+////IIC_start();
+////IIC_send(0x8A);//Display control, select 4/16 pulse width
+////IIC_end();
+////}
+//
+//
+//#define F_CPU 16000000UL
+//#define BAUD 9600
+//#include <avr/io.h>
+//#include <util/setbaud.h>
+//#include <util/delay.h>
+//#include <avr/interrupt.h>
+//#include <stdbool.h>
+//char input_Command;
+//int counter;
+//uint16_t flag;
+////unsigned char smile[] = {0x00, 0x00, 0x1c, 0x02, 0x02, 0x02, 0x5c, 0x40, 0x40, 0x5c, 0x02, 0x02, 0x02, 0x1c, 0x00, 0x00};
+//
+//// Matrix display values
+//unsigned char start[] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};
+//unsigned char front[] = {0x00,0x00,0x00,0x00,0x00,0x24,0x12,0x09,0x12,0x24,0x00,0x00,0x00,0x00,0x00,0x00};
+//unsigned char back[] = {0x00,0x00,0x00,0x00,0x00,0x24,0x48,0x90,0x48,0x24,0x00,0x00,0x00,0x00,0x00,0x00};
+//unsigned char left[] ={0x00, 0x00, 0x00, 0xfe, 0x80, 0x80, 0x80, 0x80, 0x02, 0x02, 0x02, 0xfe, 0x02, 0x02, 0x02, 0x00};
+//unsigned char right[] ={0x00, 0x00, 0xfe, 0x22, 0x22, 0x7a, 0xce, 0x00, 0x02, 0x02, 0x02, 0xfe, 0x02, 0x02, 0x02, 0x00};
+//unsigned char STOP[] = {0x2E,0x2A,0x3A,0x00,0x02,0x3E,0x02,0x00,0x3E,0x22,0x3E,0x00,0x3E,0x0A,0x0E,0x00};
+//int main(void)
+//{
+	//TCCR1B = (1 << CS12);// Set Pre scalar as 256
+	//UBRR0H = UBRRH_VALUE;
+	//UBRR0L = UBRRL_VALUE;
+	//UCSR0B |= (1<<RXEN0) | (1 << RXCIE0);		// Enable Receiver for bluetooth communication
+	//UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);			// Set frame to 8 bits
+	//DDRB = 0b00000010;							// LED PIN 9 as output, IR Sensor 8,10,11,7 pins as input
+	//DDRD = 0b01110100;							// Left & Right group motors at PIN 5,6, 4,2 as Output
+	//DDRC |= 0b00110000;
+	//TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM01) | (1 << WGM00); // set fast PWM mode with non-inverting output for OC0A and OC0B
+	//TCCR0B |= (1 << CS02);						// set prescaler to 256
+	//sei();
+	//while (1)
+	//{
+		//switch (input_Command){
+			//case 'F':						// Forward Function
+			//counter = -1;
+			//PORTB = 0b00000010;						// Turn on LED
+			//Line_follow();
+			//break;
+			//case 'B':					// Stop Function
+			//PORTB = 0b00000000;						// Turn off LED
+			//PORTD = 0b00000000;
+			//OCR0A = 0;
+			//OCR0B = 0;
+			//break;
+			//case 'L':				// Stop and Go function
+			//PORTD = 0b00000000;
+			//OCR0A = 0;
+			//OCR0B = 0;
+			//_delay_ms(5000);		// Cooling down period 5 seconds
+			//Line_follow();			// Line follow algorithm
+		//}
+	//}
+//}
+//ISR(USART_RX_vect) {
+	//input_Command = UDR0;			// Setting received input value from RX register to variable
+//}
+//void Line_follow(){
+	//flag = 1;
+	//while(flag){
+		//// Reading Sensor Values for IR sensor
+		//int left = (PINB & (1 << PB3)) ? 1 : 0;
+		//int center = (PIND & (1 << PD7)) ? 1 : 0;
+		//int right = (PINB & (1 << PB0)) ? 1 : 0 ; // Determine the line position if ((left) && (center) && (right))
+		//// Reading snesor values for Extra IR Sensors
+		//int extra_left = (PINC & (1 << PC0)) ? 1 : 0;
+		////int extra_left = (PINB & (1<<PB2)) ? 1:0;
+		//if((extra_left) && (left) && (center) && (right)){
+			//// On the line - go straight
+			//PORTD = 0b01100000; // set right side forward
+			//matrix_display(front);
+			//OCR0A = 63;   // PWM Speed
+			//OCR0B = 63;	  // PWM Speed
+		//}
+		//else if ((extra_left) && (left) && (center) && (!right)) // Slight left Turn
+		//{
+			//PORTD = 0b01000100; // set right side forward
+			//matrix_display(left);
+			//OCR0A = 185;		// PWM Speed Backward tyres
+			//OCR0B = 40;			// PWM Speed Forward tyres
+		//}
+		//else if ((extra_left) && (left) && (!center) && (!right)) // Sharp left Turn
+		//{
+			//PORTD = 0b01000100; // set right side forward
+			//OCR0A = 225;
+			//OCR0B = 53;
+			//matrix_display(left);
+		//}
+		////else if ((!extra_left) && (!left) && (!center) && (right))// Sharp Left Turn
+		////{
+		////PORTD = 0b00110000; // set right side forward
+		////matrix_display(left);
+		////OCR0A = 40;
+		////OCR0B = 235;
+		////}
+		//else if ((!extra_left) && (left) && (center) && (right) ) // Slight Right Turn
+		//{
+			//PORTD = 0b00110000; // set right side forward
+			//OCR0A = 40;
+			//OCR0B = 185;
+			//matrix_display(right);
+//
+		//}
+		//else if ((!extra_left) && (!left) && (center) && (right)) // Slight Right Turn
+		//{
+			//PORTD = 0b00110000; // set right side forward
+			//OCR0A = 50;
+			//OCR0B = 220;
+			//matrix_display(right);
+//
+		//}
+		//else if ((!extra_left) && (!left) && (!center) && (right) )// Sharp Right Turn
+		//{
+			//PORTD = 0b00110000; // set right side forward
+			//OCR0A = 45;
+			//OCR0B = 235;
+			//matrix_display(right);
+//
+		//}
+		//else if((!extra_left) && (!left) && (!center) && (!right))
+		//{
+			//if (counter == -1){
+				//PORTD = 0b01100000;
+				//counter++;
+			//}
+			//else if (counter >= 0){
+				//// Lost the line - stop
+				//PORTD = 0b00010100;// set both motors to stop
+				//OCR0A = 20;
+				//OCR0B = 32;
+			//matrix_display(STOP);}
+//
+		//}
+		//if(input_Command == 'B' || input_Command == 'L'){
+			//flag = 0;
+			//break;
+		//}
+	//}
+//}
+//void IIC_start(){
+	//PORTC = 0b00010000;
+	//PORTC = 0b00110000;
+	//_delay_us(30);
+	//PORTC = 0b00100000;
+	//_delay_us(30);
+	//PORTC = 0b00000000;
+//};
+//void IIC_end(){
+	//PORTC = 0b00000000;
+	//_delay_us(30);
+	//PORTC = 0b00100000;
+	//_delay_us(30);
+	//PORTC =0b00110000;
+	//_delay_us(30);
+//};
+//void IIC_send(unsigned char send_data){
+	//for (char mask = 0x01; mask != 0; mask <<= 1)
+	//{
+		//if (send_data & mask)
+		//{
+			//PORTC = 0b00010000;
+			//}else {
+			//PORTC = 0b00000000;
+		//}
+		//_delay_us(30);
+		//PORTC =0b00100000;
+		//_delay_us(30);
+		//PORTC = 0b00000000;
+	//}
+//};
+//void matrix_display(unsigned char matrix_smile[]){
+	//IIC_start();
+	//IIC_send(0xc0);
+	//for (int i = 0; i < 16; i++) //the pattern data is 16 bytes
+	//{
+		//IIC_send(matrix_smile[i]); //Transmit the data of the pattern
+	//}
+	//IIC_end();//End pattern data transmission
+	//IIC_start();
+	//IIC_send(0x8A);//Display control, select 4/16 pulse width
+	//IIC_end();
+//}
