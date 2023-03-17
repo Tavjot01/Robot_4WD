@@ -1,3 +1,8 @@
+
+// Line following algorithm with object avoidance to turn and move ahead of the object
+
+
+
 #define F_CPU 16000000UL
 #define BAUD 9600
 #include <avr/io.h>
