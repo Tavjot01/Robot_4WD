@@ -1,0 +1,10 @@
+initial_value = 1000
+print('You have', initial_value,'sek in your bank')
+withdrawl_amnt= int(input('Please enter the amount you want to withdraw: '))
+
+balance= initial_value- withdrawl_amnt
+if withdrawl_amnt%100==0 and withdrawl_amnt<=initial_value:
+    print('Your remaining balance is',balance)
+else:
+    print('Value not accepted','\n''withdrawl amount should be in 100 sek bills and less than the initial balance amount')
+    
